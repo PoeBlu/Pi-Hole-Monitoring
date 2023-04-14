@@ -24,11 +24,15 @@ def wait_for_connection():
 
 def get_last_id():
 	'''fill existing data from pihole-FTL.db'''
-	rs = list(client.query('SELECT last(id) FROM "pihole-FTL";').get_points())
-	last_id = 0
-	if len(rs) > 0:
-		last_id = rs[0]['last']
-	return last_id
+	return (
+		rs[0]['last']
+		if (
+			rs := list(
+				client.query('SELECT last(id) FROM "pihole-FTL";').get_points()
+			)
+		)
+		else 0
+	)
 
 
 def add_new_results(last_id):
@@ -39,7 +43,7 @@ def add_new_results(last_id):
 		try:
 			con = connect('/etc/pihole/pihole-FTL.db')
 			with con:
-				query = "SELECT * FROM queries WHERE id > {} ORDER BY id DESC LIMIT 10000".format(last_id)
+				query = f"SELECT * FROM queries WHERE id > {last_id} ORDER BY id DESC LIMIT 10000"
 				cur = con.cursor()
 				cur.execute(query)
 
